@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Build and test
 
 on:
   push:
@@ -6,6 +6,7 @@ on:
       - 'v2'
       - 'feature/**'
       - 'fix/**'
+      - 'master'
   pull_request:
     branches: [v2]
 
