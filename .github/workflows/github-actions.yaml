@@ -11,21 +11,44 @@ on:
     branches: [v2]
 
 jobs:
-  deploy_and_run:
-    runs-on: ubuntu-18.04
-    # defaults:
-    #   run:
-    #     working-directory: ./mdV2
-    name: build
+
+  # Build & Test
+  buildAndTest:
+    name: Build & Test
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ env.GITHUB_TOKEN }}
+
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
-      - name: Remove sensitive files
-        run: rm -rf .git .github .gitignore
-      - name: Install Dependencies
-        run: yarn
-      - name: Build
-        run: yarn build
+          node-version: "16"
+
+      # pnpm cache
+      - uses: actions/cache@v2
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-
+      # Install
+      - name: INSTALL
+        uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.22.2
+          run_install: true
+
+      # Build
+      - name: BUILD
+        run: pnpm build:ci
+
+      # Test
+      - name: TEST
+        run: pnpm test:ci
+
+      # Upload dist artifacts
+      - uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist/
